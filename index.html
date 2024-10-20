@@ -27,23 +27,6 @@
             border: 1px solid #ddd;
         }
 
-        button {
-            display: block;
-            width: 85%;
-            margin: 0 auto;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #28a745;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #218838;
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
@@ -62,7 +45,7 @@
         }
 
         @media (max-width: 600px) {
-            input[type="text"], button {
+            input[type="text"] {
                 width: 100%;
             }
         }
@@ -72,12 +55,13 @@
 
     <h1>商品搜尋 Web App</h1>
 
-    <input type="text" id="searchInput" placeholder="輸入商品名稱或編號">
-    <button onclick="search()">搜尋</button>
+    <input type="text" id="searchInput" placeholder="輸入商品名稱或編號" oninput="filterResults()">
 
     <div id="results"></div>
 
     <script>
+        let productData = [];
+
         // 自動重導向到正確的專案路徑
         if (window.location.pathname === '/') {
             window.location.replace('/wa1020/index.html');
@@ -92,26 +76,32 @@
                 .catch(err => console.log('Service Worker 註冊失敗', err));
         }
 
-        // 搜尋功能
-        function search() {
-            const query = document.getElementById("searchInput").value.toLowerCase();
+        // 初始化時載入商品資料並顯示在表格中
+        document.addEventListener('DOMContentLoaded', () => {
             const jsonFilePath = '/wa1020/latest.json';
 
             fetch(jsonFilePath)
                 .then(response => response.json())
                 .then(data => {
-                    const results = data.filter(item => 
-                        (item["商品名稱"] && item["商品名稱"].toLowerCase().includes(query)) || 
-                        (item["商品編號"] && item["商品編號"].includes(query))
-                    );
-                    displayResults(results);
+                    productData = data; // 儲存資料到全域變數
+                    displayResults(productData); // 顯示所有商品
                 })
                 .catch(error => {
                     document.getElementById("results").innerHTML = `<p>${error.message}</p>`;
                 });
+        });
+
+        // 即時篩選商品資料
+        function filterResults() {
+            const query = document.getElementById("searchInput").value.toLowerCase();
+            const filteredResults = productData.filter(item =>
+                (item["商品名稱"] && item["商品名稱"].toLowerCase().includes(query)) ||
+                (item["商品編號"] && item["商品編號"].includes(query))
+            );
+            displayResults(filteredResults);
         }
 
-        // 顯示搜尋結果
+        // 顯示搜尋結果為表格
         function displayResults(results) {
             if (results.length === 0) {
                 document.getElementById("results").innerHTML = "<p>找不到符合條件的商品。</p>";
