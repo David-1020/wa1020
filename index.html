@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商品搜尋 Web App</title>
+    <title>商品搜尋</title>
     <link rel="manifest" href="/wa1020/manifest.json">
     <style>
         body {
@@ -16,21 +16,25 @@
         h1 {
             text-align: center;
             color: #333;
+            margin-bottom: 10px;
         }
 
         input[type="text"] {
-            width: 80%;
+            width: 100%;
+            max-width: 500px;
             padding: 10px;
             margin: 10px auto;
             display: block;
             border-radius: 5px;
             border: 1px solid #ddd;
+            box-sizing: border-box; /* 確保內邊距不會影響總寬度 */
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            word-wrap: break-word; /* 防止文字超出單元格 */
         }
 
         th, td {
@@ -46,7 +50,7 @@
 
         @media (max-width: 600px) {
             input[type="text"] {
-                width: 100%;
+                width: 90%; /* 在小螢幕上自適應 */
             }
         }
     </style>
@@ -83,8 +87,8 @@
             fetch(jsonFilePath)
                 .then(response => response.json())
                 .then(data => {
-                    productData = data; // 儲存資料到全域變數
-                    displayResults(productData); // 顯示所有商品
+                    productData = data;
+                    displayResults(productData);
                 })
                 .catch(error => {
                     document.getElementById("results").innerHTML = `<p>${error.message}</p>`;
