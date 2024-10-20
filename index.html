@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>商品搜尋 Web App</title>
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/wa1020/manifest.json">
     <style>
-        /* 使 Web App 更美觀的 CSS */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -79,80 +78,54 @@
     <div id="results"></div>
 
     <script>
-        // Service Worker 註冊
+        // 自動重導向到正確的專案路徑
+        if (window.location.pathname === '/') {
+            window.location.replace('/wa1020/index.html');
+        }
+
+        // Service Worker 註冊程式碼
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/json1015/service-worker.js', { scope: '/json1015/' })
+            navigator.serviceWorker.register('/wa1020/service-worker.js', { scope: '/wa1020/' })
                 .then(registration => {
                     console.log('Service Worker 註冊成功', registration);
                 })
                 .catch(err => console.log('Service Worker 註冊失敗', err));
         }
 
-        // 儲存搜尋結果於 LocalStorage
-        function fetchAndCacheData() {
-            const jsonFilePath = 'latest.json';
-            return fetch(jsonFilePath)
-                .then(response => response.json())
-                .then(data => {
-                    localStorage.setItem('productData', JSON.stringify(data));
-                    return data;
-                });
-        }
-
+        // 搜尋功能
         function search() {
             const query = document.getElementById("searchInput").value.toLowerCase();
-            let data = JSON.parse(localStorage.getItem('productData'));
+            const jsonFilePath = '/wa1020/latest.json';
 
-            if (!data) {
-                fetchAndCacheData().then(newData => {
-                    data = newData;
-                    performSearch(data, query);
+            fetch(jsonFilePath)
+                .then(response => response.json())
+                .then(data => {
+                    const results = data.filter(item => 
+                        (item["商品名稱"] && item["商品名稱"].toLowerCase().includes(query)) || 
+                        (item["商品編號"] && item["商品編號"].includes(query))
+                    );
+                    displayResults(results);
+                })
+                .catch(error => {
+                    document.getElementById("results").innerHTML = `<p>${error.message}</p>`;
                 });
-            } else {
-                performSearch(data, query);
-            }
         }
 
-        function performSearch(data, query) {
-            const filteredResults = data.filter(item => 
-                (item["商品名稱"] && item["商品名稱"].toLowerCase().includes(query)) || 
-                (item["商品編號"] && item["商品編號"].includes(query))
-            );
-            displayResults(filteredResults);
-        }
-
+        // 顯示搜尋結果
         function displayResults(results) {
             if (results.length === 0) {
                 document.getElementById("results").innerHTML = "<p>找不到符合條件的商品。</p>";
                 return;
             }
 
-            let table = `
-                <table>
-                    <tr>
-                        <th>商品編號</th>
-                        <th>商品名稱</th>
-                        <th>電腦現存量</th>
-                    </tr>`;
+            let table = "<table><tr><th>商品編號</th><th>商品名稱</th><th>電腦現存量</th></tr>";
             results.forEach(item => {
-                table += `
-                    <tr>
-                        <td>${item["商品編號"]}</td>
-                        <td>${item["商品名稱"]}</td>
-                        <td>${item["電腦現存量"]}</td>
-                    </tr>`;
+                table += `<tr><td>${item["商品編號"]}</td><td>${item["商品名稱"]}</td><td>${item["電腦現存量"]}</td></tr>`;
             });
             table += "</table>";
 
             document.getElementById("results").innerHTML = table;
         }
-
-        // 初始化時檢查是否已有快取資料
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!localStorage.getItem('productData')) {
-                fetchAndCacheData();
-            }
-        });
     </script>
 
 </body>
